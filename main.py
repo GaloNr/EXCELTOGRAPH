@@ -2,10 +2,6 @@
 NOTE: The FFT function works correctly, the sine wave generation is flawed due to
 the limit of the sampling rates therefore displaying the magnitude incorrectly by
 a small (potentially insignificant margin) in the graph
-
-TODO: LOCATE THE POSITION OF PEAKS ()
-TODO: CALCULATE THE AREA UNDER THE GRAPH BETWEEN THE PEAKS
-TODO: CALCULATE THE DURATION OF EACH PEAK ()
 """
 
 import numpy.fft as fft
