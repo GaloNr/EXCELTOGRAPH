@@ -1,72 +1,39 @@
-"""import numpy.fft
-import pandas as pd
+
+import pandas
+import pywt
 import numpy as np
 import matplotlib.pyplot as plt
+import pandas as pd
+import skimage.restoration as rest
+from pandas import DataFrame as df
+'''
+wavelet_types = ['bior1.1', 'bior1.3', 'bior1.5', 'bior2.2', 'bior2.4', 'bior2.6', 'bior2.8', 'bior3.1', 'bior3.3', 'bior3.5', 'bior3.7', 'bior3.9', 'bior4.4', 'bior5.5', 'bior6.8', 'cgau1', 'cgau2', 'cgau3', 'cgau4', 'cgau5', 'cgau6', 'cgau7', 'cgau8', 'cmor', 'coif1', 'coif2', 'coif3', 'coif4', 'coif5', 'coif6', 'coif7', 'coif8', 'coif9', 'coif10', 'coif11', 'coif12', 'coif13', 'coif14', 'coif15', 'coif16', 'coif17', 'db1', 'db2', 'db3', 'db4', 'db5', 'db6', 'db7', 'db8', 'db9', 'db10', 'db11', 'db12', 'db13', 'db14', 'db15', 'db16', 'db17', 'db18', 'db19', 'db20', 'db21', 'db22', 'db23', 'db24', 'db25', 'db26', 'db27', 'db28', 'db29', 'db30', 'db31', 'db32', 'db33', 'db34', 'db35', 'db36', 'db37', 'db38', 'dmey', 'fbsp', 'gaus1', 'gaus2', 'gaus3', 'gaus4', 'gaus5', 'gaus6', 'gaus7', 'gaus8', 'haar', 'mexh', 'morl', 'rbio1.1', 'rbio1.3', 'rbio1.5', 'rbio2.2', 'rbio2.4', 'rbio2.6', 'rbio2.8', 'rbio3.1', 'rbio3.3', 'rbio3.5', 'rbio3.7', 'rbio3.9', 'rbio4.4', 'rbio5.5', 'rbio6.8', 'shan', 'sym2', 'sym3', 'sym4', 'sym5', 'sym6', 'sym7', 'sym8', 'sym9', 'sym10', 'sym11', 'sym12', 'sym13', 'sym14', 'sym15', 'sym16', 'sym17', 'sym18', 'sym19', 'sym20']
+# For the info :)
 
-# Default values
+# Example signal (replace with your actual signal data)
+y = pywt.data.ecg()[0:1000].astype(float)
+print(type(y))
 
-file_data_y = list(np.arange(0, 350, 1)) + list(np.arange(350, 0, -1))
-file_data_x = list(np.arange(0, 700, 1))
+sigma = 5e-2
+y_noisy = y + sigma * y.max() * np.random.randn(y.size)  # Adds a bit o noise
 
+x = df.round(pd.DataFrame(np.linspace(0, 1000, num=1000).astype(float)), decimals=0)  # Overwrite delete later
 
-# Parameters
-frames = 700
-xtiks_interval = 100
-total_time = "200ms"
+y = pywt.data.ecg()[0:1000]
 
-# Get the requested file path
-file_path = input()
-filepath = file_path[1:-1]
-print(filepath)
-"C:\Users\Comp\Desktop\GRATTEN_GA_1102CAL_TEST_DATA_CSV\0V FLAT.CSV"
-# Get the file of the path
-file = pd.read_csv(filepath)
+y_denoised = rest.denoise_wavelet(y_noisy, method="BayesShrink", rescale_sigma=True, wavelet="haar", mode="soft")
 
-# Dataframe to Numpy conversion
-file = file.to_numpy()
+plt.figure(figsize=(20, 10), dpi=200)
+plt.plot(x, y_noisy, "-k")
+plt.plot(x, y, "-r")
+plt.plot(x, y_denoised, "-c")
 
-# Exclude the data parameters
-file_param = list(filter(lambda x: not x[0].isnumeric(), file.copy()))
-
-# Exclude the data itself
-file_data = list(filter(lambda x: x[0].isnumeric(), file.copy()))
-file_data = list(map(lambda x: list(x) if isinstance(x, type(np.empty(shape=1))) else x, file_data))
-file_data = list(map(lambda x: [float(x[0]) - 1, float(x[1])], file_data))
-file_data_y = [i[1] for i in file_data]
-file_data_x = [i[0] for i in file_data]
-print(file_data[0: 50])
-max_y = np.max(file_data_y)
-min_y = np.min(file_data_y)
-
-# Set the ticks values
-ytiks = np.arange(min_y - (max_y - min_y) / 25 * 2, max_y + (max_y - min_y) / 25 * 2, ((max_y - min_y) / 25))
-xtiks = np.arange(0, frames, 100)
-
-# Get the area under the graph
-area_xlim = (0, 700)  # Edit these frames to bound the area box
-area_ylim_data = file_data_y[area_xlim[0]:area_xlim[1]]
-area_xlim_data = np.arange(area_xlim[0], area_xlim[1], 1)
-plt.fill_between(area_xlim_data, area_ylim_data, color='blue')
-area = 0
-for i in range(len(area_xlim_data) - 1):
-    area += abs(np.trapz([area_ylim_data[i], area_ylim_data[i+1]], [area_xlim_data[i], area_xlim_data[i+1]]))
-print(area)
-
-# Create the graph (voltage/time)
-plt.plot(file_data_x, file_data_y, color='green')
-plt.ylabel('voltage (V)')
-plt.xlabel('frames (s)')
-plt.title("idk a graph")
-plt.xlim((0, 700))
-plt.ylim((min_y - (max_y - min_y) / 25 * 2, max_y + (max_y - min_y) / 25 * 2))
-plt.yticks(ytiks)
 plt.show()
+'''
 
-# Generate a Fourier spectrum of the graph
-fft_signal = np.abs(np.fft.fft(file_data_y))
-plt.plot(file_data_x, fft_signal)
+x = [1, 2, 3, 4]
+max_x = max(x)
+x = list(map(lambda i: (i * -1) + max(x) + min(x), x))
+plt.plot(np.linspace(0, len(x) - 1, len(x)), x, "-r")
 plt.show()
-
-# TODO change for the same amplitude/voltage, not the time
-"""
 
