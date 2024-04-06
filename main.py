@@ -12,6 +12,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from pathlib import Path
 import scipy.signal as sig
+import time
 
 class Root:
     def __init__(self):  # Parameters for graphs(preset + actual)
@@ -26,6 +27,8 @@ class Root:
         self.y_axis = None
         self.x_axis = None  # Axis are overwritten in the code below
         self.y_denoised = None  # Just in case
+        self.start = 0
+        self.end = 0
 
     def filepath_exists(self, filepath: str):  # Checks if the mentioned filepath exists, otherwise use\
         # presets
@@ -109,13 +112,16 @@ class Root:
         return peaks, peaks_prominences
 
     def find_area(self, y_axis: df or np.array or list, peaks: df or np.array or list):
-        if peaks[0].size >= 2:
+        if peaks.size >= 2:
             total_area = 0  # Area under all the peaks
             for i in range(0, len(peaks) - 1):
                 total_area += np.trapz(y_axis[peaks[i]: peaks[i + 1]])
             return total_area
         else:
             return 0
+
+    def runtime(self):
+        print(round(self.end - self.start, 2), "s")
 
     def display_data(self):  # Method to display the data gathered, add the next method here
         fig, (ax1, ax2, ax3, ax4) = plt.subplots(nrows=4, ncols=1, figsize=(7,7),
@@ -162,9 +168,11 @@ class Root:
         ax3.set_xlabel("Time(S)")
 
         plt.subplots_adjust(hspace=1)
+        self.end = time.time()
         plt.show()  # Show the gramkjnphs
 
     def main(self):
+        self.start = time.time()
         filepath = input("Input custom filepath otherwise preset is used...\n")
         if not self.filepath_exists(filepath):  # Check if the preset ot custom file is used
             self.use_sine()  # Use the sine preset wave
@@ -172,8 +180,10 @@ class Root:
         else:
             self.oscilloscope_process()
             self.display_data()
+        self.runtime()
 
 
 if __name__ == "__main__":
+    start = time.time()
     a = Root()
     a.main()
