@@ -1,3 +1,8 @@
+"""This is the test environment set to test out castings on different modules
+    All the commits will be accepted
+    Docstringed code is saved for later view and usage, please do not modify or delete.
+"""
+
 
 import pandas
 import pywt
