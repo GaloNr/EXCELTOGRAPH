@@ -13,7 +13,6 @@ import matplotlib.pyplot as plt
 from pathlib import Path
 import scipy.signal as sig
 
-
 class Root:
     def __init__(self):  # Parameters for graphs(preset + actual)
         self.frequency = 1  # Generates this many waveforms (USED IN PRESET ONLY)
@@ -101,7 +100,7 @@ class Root:
     def find_peaks(self, y_axis: df or np.array or list):
         peaks = None
         peaks_prominences = None
-        if self.model == None or self.model == "GRA":
+        if self.model is None or self.model == "GRA":
             peaks = sig.find_peaks(y_axis, prominence=1)  # Unfinished
         elif self.model == "UTD":
             peaks = sig.find_peaks(y_axis, prominence=100, height=500)
@@ -110,23 +109,26 @@ class Root:
         return peaks, peaks_prominences
 
     def find_area(self, y_axis: df or np.array or list, peaks: df or np.array or list):
-        total_area = 0  # Area under all the peaks
-        for i in range(0, len(peaks) - 1):
-            total_area += np.trapz(y_axis[peaks[i]: peaks[i + 1]])
-        return total_area
+        if peaks[0].size >= 2:
+            total_area = 0  # Area under all the peaks
+            for i in range(0, len(peaks) - 1):
+                total_area += np.trapz(y_axis[peaks[i]: peaks[i + 1]])
+            return total_area
+        else:
+            return 0
 
     def display_data(self):  # Method to display the data gathered, add the next method here
-        fig, (ax1, ax2, ax3, ax4) = plt.subplots(nrows=4, ncols=1, figsize=(7, 5),
+        fig, (ax1, ax2, ax3, ax4) = plt.subplots(nrows=4, ncols=1, figsize=(7,7),
                                                  dpi=120)  # Show both graphs at the same time
         ax1.plot(self.x_axis, self.y_axis, "-k")
-        ax1.set_ylabel("original (VOLTAGE)")
+        ax1.set_ylabel("VOLTAGE")
         ax1.set_xlabel("Time (S)")
 
         # FFT SPECTRUM
         x_axis_fft, y_axis_fft, y_axis_neg_included, x_axis_neg_included = self.fourier_transform(self.y_axis,
                                                                                                   self.sample_count)  # Fourier Transform the sine
         ax2.plot(x_axis_neg_included, y_axis_neg_included, "-b")
-        ax2.set_ylabel("DFT transformed (MAGNITUDE)")
+        ax2.set_ylabel("FFT")
         ax2.set_xlabel("Frequency (HZ)")
 
         # denoised graph hehe
@@ -137,23 +139,30 @@ class Root:
         min_y_denoised = min(self.y_denoised)
         self.y_axis = list(map(lambda x: x * -1 + max_y_denoised + min_y_denoised, self.y_denoised))
         peaks, peaks_prominences = self.find_peaks(self.y_axis)
-        print(peaks)
-        print(self.find_area(self.y_axis, peaks))
-        ax4.plot(self.x_axis, self.y_axis, "-r")
-        ax4.plot(peaks, np.take(self.y_axis, peaks), ".k")
-        peak_first = peaks[0]
-        peak_last = peaks[-1]
-        ax4.fill_between(self.x_axis[peak_first: peak_last+1], self.y_axis[peak_first: peak_last+1], 0)
-        ax4.set_ylabel("denoised with peaks")
+        if peaks[0].size >= 2:
+            print(peaks)
+            print(self.find_area(self.y_axis, peaks))
+            ax4.plot(self.x_axis, self.y_axis, "-r")
+            ax4.plot(peaks, np.take(self.y_axis, peaks), ".k")
+            peak_first = peaks[0]
+            peak_last = peaks[-1]
+            ax4.fill_between(self.x_axis[peak_first: peak_last+1], self.y_axis[peak_first: peak_last+1], 0)
+
+            # the rest of the graph here to get the peaks from the last graph
+            ax3.plot(self.x_axis, self.y_denoised, "-c")
+            ax3.plot(peaks, np.take(self.y_denoised, peaks), ".k")
+        else:
+            ax4.plot(self.x_axis, self.y_axis, "-r")
+            ax3.plot(self.x_axis, self.y_denoised, "-c")
+            print("no peaks detected :(")
+
+        ax4.set_ylabel("INVERSED")
         ax4.set_xlabel("Time(S)")
+        ax3.set_ylabel("DENOISED")
+        ax3.set_xlabel("Time(S)")
 
-        # the rest of the graph here to get the peaks from the last graph
-        ax3.plot(self.x_axis, self.y_denoised, "-c")
-        ax3.plot(peaks, np.take(self.y_denoised, peaks), ".k")
-        ax3.set_ylabel("DENOISED GRAPH")
-        ax3.set_xlabel("Time")
-
-        plt.show()  # Show the graphs
+        plt.subplots_adjust(hspace=1)
+        plt.show()  # Show the gramkjnphs
 
     def main(self):
         filepath = input("Input custom filepath otherwise preset is used...\n")
@@ -168,5 +177,3 @@ class Root:
 if __name__ == "__main__":
     a = Root()
     a.main()
-
-# COMMIT TEST
