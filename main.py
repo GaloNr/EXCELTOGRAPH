@@ -10,6 +10,7 @@ from pandas import DataFrame as df
 import skimage.restoration as rest
 import numpy as np
 import matplotlib.pyplot as plt
+import matplotlib
 from pathlib import Path
 import scipy.signal as sig
 import time
@@ -21,7 +22,7 @@ class Root:
         self.sample_count = 100  # total
         self.model = None  # Either UTD (UNI-T) or GRA (Gratten)
         self.duration = 1  # in seconds
-        self.threshold = 99e-2  # Used in IFFT method to reduce the noise
+        self.threshold = 5e-2  # Used in IFFT method to reduce the noise
         self.filepath = None  # File doesn't exist unless said so
         self.file_data = None  # Depends on if the file is used
         self.y_axis = None
@@ -95,7 +96,7 @@ class Root:
     def denoise(self, y_axis: df or np.array or list):
         if type(y_axis) == list:
             y_axis = np.array(y_axis)
-        y_denoised = rest.denoise_wavelet(y_axis, method="VisuShrink", rescale_sigma=True, wavelet="db20", mode="soft")
+        y_denoised = rest.denoise_wavelet(y_axis, method="VisuShrink", rescale_sigma=False, wavelet="db20", mode="soft")
         return y_denoised
         # Transform only real parts
         # Filter using the maximum (real part of complex values)
@@ -106,19 +107,24 @@ class Root:
         if self.model is None or self.model == "GRA":
             peaks = sig.find_peaks(y_axis, prominence=1)  # Unfinished
         elif self.model == "UTD":
-            peaks = sig.find_peaks(y_axis, prominence=100, height=500)
-            peaks = peaks[0]
-            peaks_prominences = sig.peak_prominences(y_axis, peaks)
+            peaks, _ = sig.find_peaks(y_axis)
+            peaks_prominences, _, _ = sig.peak_prominences(y_axis, peaks)  # noqa
         return peaks, peaks_prominences
 
-    def find_area(self, y_axis: df or np.array or list, peaks: df or np.array or list):
+    def find_area(self, y_axis: df or np.array or list, peaks: df or np.array or list):  # READJUST THE PERCENTAGE (THRESHOLD TO 0 if less than 0.1% of maximum achieved)
         if peaks.size >= 2:
-            total_area = 0  # Area under all the peaks
-            for i in range(0, len(peaks) - 1):
-                total_area += np.trapz(y_axis[peaks[i]: peaks[i + 1]])
-            return total_area
+            '''total_area = 0  # Area under all the peaks
+            distance_furthest = peaks[-1] - peaks[0]
+            wave_start = int(round(peaks[0] - distance_furthest * 0.1, 0)) if round(peaks[0] - distance_furthest * 0.1, 0) >= 0 else 0
+            wave_end = int(round(peaks[-1] + distance_furthest * 0.1, 0)) if round(peaks[-1] + distance_furthest * 0.1, 0) <= self.sample_count else 0
+            total_area += round(np.trapz(y_axis[wave_start: wave_end+1]), 2)
+            return total_area, wave_start, wave_end'''
+            peaks_values = np.take(y_axis, peaks)
+            threshold = max(peaks_values) * self.threshold
+            peaks_filtered = np.take(peaks_values, np.where(peaks_values > threshold))
+            print("peaks_filtered", peaks_filtered)  # FINISH THE  LOCATION OF PEAKS AND SELECTION OF AREA
         else:
-            return 0
+            return 0, 0, 0
 
     def runtime(self):
         print(round(self.end - self.start, 2), "s")
@@ -140,23 +146,32 @@ class Root:
         # denoised graph hehe
         self.y_denoised = self.denoise(self.y_axis)
 
-        # useless shit under construction
+        # reverse magic
         max_y_denoised = max(self.y_denoised)
         min_y_denoised = min(self.y_denoised)
         self.y_axis = list(map(lambda x: x * -1 + max_y_denoised + min_y_denoised, self.y_denoised))
         peaks, peaks_prominences = self.find_peaks(self.y_axis)
-        if peaks[0].size >= 2:
+
+        # STACK EXCHANGE MAGIC
+        selected = peaks_prominences > 0.5 * (np.min(peaks_prominences) + np.max(peaks_prominences))
+        left = peaks[:-1][selected[1:]]
+        right = peaks[1:][selected[:-1]]
+        top = peaks[selected]
+
+        if peaks.size >= 2:
             print(peaks)
             print(self.find_area(self.y_axis, peaks))
-            ax4.plot(self.x_axis, self.y_axis, "-r")
-            ax4.plot(peaks, np.take(self.y_axis, peaks), ".k")
-            peak_first = peaks[0]
-            peak_last = peaks[-1]
-            ax4.fill_between(self.x_axis[peak_first: peak_last+1], self.y_axis[peak_first: peak_last+1], 0)
+            ax4.plot(self.x_axis, self.y_axis, "-r",)
+            ax4.plot(peaks, np.take(self.y_axis, peaks), ".k", markersize=5)
+            total_area, start, end = self.find_area(self.y_axis, peaks)
+            ax4.fill_between(self.x_axis[start: end+1], self.y_axis[start: end+1], 0)
 
             # the rest of the graph here to get the peaks from the last graph
             ax3.plot(self.x_axis, self.y_denoised, "-c")
-            ax3.plot(peaks, np.take(self.y_denoised, peaks), ".k")
+            ax3.plot(peaks, np.take(self.y_denoised, peaks), ".k", markersize=5)
+            ax3.plot(top, self.y_denoised[top], ".y", markersize=5)
+            ax3.plot(left, self.y_denoised[left], "xr", markersize=5)
+            ax3.plot(right, self.y_denoised[right], "vg", markersize=5)
         else:
             ax4.plot(self.x_axis, self.y_axis, "-r")
             ax3.plot(self.x_axis, self.y_denoised, "-c")

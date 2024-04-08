@@ -35,10 +35,25 @@ plt.plot(x, y_denoised, "-c")
 
 plt.show()
 '''
+'''
+from scipy.misc import electrocardiogram
+from scipy.signal import find_peaks, peak_prominences
+x = electrocardiogram()[2000:3500]
+#b, a = butter(4, 0.001, 'high')
+#x = lfilter(b, a, x)
+peaks, _ = find_peaks(x)
+prominences, _, _ = peak_prominences(x, peaks)
+selected = prominences > 0.5 * (np.min(prominences) + np.max(prominences))
+left = peaks[:-1][selected[1:]]
+right = peaks[1:][selected[:-1]]
+top = peaks[selected]
 
-x = [1, 2, 3, 4]
-max_x = max(x)
-x = list(map(lambda i: (i * -1) + max(x) + min(x), x))
-plt.plot(np.linspace(0, len(x) - 1, len(x)), x, "-r")
-plt.show()
+plt.figure(figsize=(14, 4))
+plt.plot(x)
+print(top, "\n", left, "\n", right, "\n", peaks)
+plt.plot(top, x[top], "x")
+plt.plot(left, x[left], ".", markersize=20)
+plt.plot(right, x[right], ".", markersize=20)
+plt.show()'''
 
+print(1.15556184e+04 == 11555.61840592253)
