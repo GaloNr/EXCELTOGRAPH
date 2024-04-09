@@ -29,8 +29,8 @@ fig.suptitle("Readings vs. Altitude", x=0.5, ha="right", color="#8a8a8a", size=2
 
 print(circuit_light, oscilloscope)
 
-plt.plot(heights, circuit_light, ".b", ms=8, label="Flux (min^-1) (measured by circuit light")
-plt.plot(heights, oscilloscope, ".r", ms=8, label="Flux (min^-1) (measured by oscilloscope trace")
+plt.plot(heights, circuit_light, ".b", ms=8, label="Flux (min^-1) (measured by circuit light)")
+plt.plot(heights, oscilloscope, ".r", ms=8, label="Flux (min^-1) (measured by oscilloscope trace)")
 plt.plot(heights, circuit_light, "_b", ms=8)
 plt.plot(heights, oscilloscope, "_r", ms=8)
 
@@ -43,5 +43,7 @@ plt.xlabel("Altitude (m)", labelpad=12)
 plt.grid(color="black", alpha=0.25)
 
 plt.legend(loc=0)
+
+plt.savefig("graph.png")
 
 plt.show()
