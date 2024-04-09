@@ -111,7 +111,7 @@ class Root:
             peaks_prominences, _, _ = sig.peak_prominences(y_axis, peaks)  # noqa
         return peaks, peaks_prominences
 
-    def find_area(self, y_axis: df or np.array or list, peaks: df or np.array or list):  # READJUST THE PERCENTAGE (THRESHOLD TO 0 if less than 0.1% of maximum achieved)
+    def find_area(self, y_axis: df or np.array or list, peaks: df or np.array or list):  # Peaks are a list of x values where peaks appear
         if peaks.size >= 2:
             '''total_area = 0  # Area under all the peaks
             distance_furthest = peaks[-1] - peaks[0]
@@ -119,10 +119,14 @@ class Root:
             wave_end = int(round(peaks[-1] + distance_furthest * 0.1, 0)) if round(peaks[-1] + distance_furthest * 0.1, 0) <= self.sample_count else 0
             total_area += round(np.trapz(y_axis[wave_start: wave_end+1]), 2)
             return total_area, wave_start, wave_end'''
-            peaks_values = np.take(y_axis, peaks)
-            threshold = max(peaks_values) * self.threshold
-            peaks_filtered = np.take(peaks_values, np.where(peaks_values > threshold))
-            print("peaks_filtered", peaks_filtered)  # FINISH THE  LOCATION OF PEAKS AND SELECTION OF AREA
+            print(peaks)
+            peaks_values = np.array(list(map(lambda x: (int(x[0]), x[1]), enumerate(np.take(y_axis, peaks)))))
+            print(peaks_values)
+            max_peak = np.amax(peaks_values)
+            print("max", max_peak)
+            peaks_values_filter = np.where(peaks_values > max_peak * self.threshold)
+            print(peaks_values_filter)
+            return 0, 0, 0  # FINISH THE LOCATION OF PEAKS AND SELECTION OF AREA
         else:
             return 0, 0, 0
 
@@ -159,8 +163,6 @@ class Root:
         top = peaks[selected]
 
         if peaks.size >= 2:
-            print(peaks)
-            print(self.find_area(self.y_axis, peaks))
             ax4.plot(self.x_axis, self.y_axis, "-r",)
             ax4.plot(peaks, np.take(self.y_axis, peaks), ".k", markersize=5)
             total_area, start, end = self.find_area(self.y_axis, peaks)
