@@ -10,7 +10,6 @@ from pandas import DataFrame as df
 import skimage.restoration as rest
 import numpy as np
 import matplotlib.pyplot as plt
-import matplotlib
 from pathlib import Path
 import scipy.signal as sig
 import time
