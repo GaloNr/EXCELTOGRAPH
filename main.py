@@ -32,8 +32,6 @@ class Root:
 
     def filepath_exists(self, filepath: str):  # Checks if the mentioned filepath exists, otherwise use\
         # presets
-        filepath = filepath[1: -1] if len(
-            filepath) > 2 else filepath  # Transform due to the File Explorer copying the filepath with the double quot. marks
         print(filepath)
 
         # Get the file of the path
@@ -118,14 +116,18 @@ class Root:
             wave_end = int(round(peaks[-1] + distance_furthest * 0.1, 0)) if round(peaks[-1] + distance_furthest * 0.1, 0) <= self.sample_count else 0
             total_area += round(np.trapz(y_axis[wave_start: wave_end+1]), 2)
             return total_area, wave_start, wave_end'''
-            print(peaks)
-            peaks_values = np.array(list(map(lambda x: (int(x[0]), x[1]), enumerate(np.take(y_axis, peaks)))))
-            print(peaks_values)
-            max_peak = np.amax(peaks_values)
-            print("max", max_peak)
-            peaks_values_filter = np.where(peaks_values > max_peak * self.threshold)
-            print(peaks_values_filter)
-            return 0, 0, 0  # FINISH THE LOCATION OF PEAKS AND SELECTION OF AREA
+            peaks_enum = np.array(list(zip(np.linspace(0, len(peaks) - 1, len(peaks)), peaks)))  # Enum list of indexes
+            peaks_values_enum = np.array(list(zip(np.linspace(0, len(peaks) - 1, len(peaks)), np.take(y_axis, peaks))))  # Enum list of values for the peaks
+            peaks_values_max = np.amax(peaks_values_enum)  # Maximum peak
+            peaks_values_filter = np.where(peaks_values_enum[:,1] > peaks_values_max * self.threshold)  # Filter to locate the actual peaks indexes
+            peaks_start = peaks_values_filter[0][0] - 1
+            peaks_end = peaks_values_filter[0][-1] + 1
+            peaks_start_x = int(peaks_enum[peaks_start, 1])
+            peaks_end_x = int(peaks_enum[peaks_end, 1])
+            total_area = np.abs(round(np.trapz(y_axis[peaks_start_x: peaks_end_x+1]), 2))
+            peaks_values_max = np.where(peaks_values_enum[:,1] == peaks_values_max)
+            peaks_values_max_x = int(peaks_enum[peaks_values_max][0][1])
+            return total_area, peaks_start_x, peaks_end_x, peaks_values_max_x
         else:
             return 0, 0, 0
 
@@ -133,18 +135,18 @@ class Root:
         print(round(self.end - self.start, 2), "s")
 
     def display_data(self):  # Method to display the data gathered, add the next method here
-        fig, (ax1, ax2, ax3, ax4) = plt.subplots(nrows=4, ncols=1, figsize=(7,7),
-                                                 dpi=120)  # Show both graphs at the same time
+        fig, (ax1, ax3) = plt.subplots(nrows=2, ncols=1, figsize=(8,6),
+                                                 dpi=200)  # Show both graphs at the same time
         ax1.plot(self.x_axis, self.y_axis, "-k")
-        ax1.set_ylabel("VOLTAGE")
-        ax1.set_xlabel("Time (S)")
+        ax1.set_ylabel("VOLTAGE (mV)", labelpad=12)
+        ax1.set_xlabel("Time (uS * 1e-1)", labelpad=12)
 
         # FFT SPECTRUM
-        x_axis_fft, y_axis_fft, y_axis_neg_included, x_axis_neg_included = self.fourier_transform(self.y_axis,
+        '''x_axis_fft, y_axis_fft, y_axis_neg_included, x_axis_neg_included = self.fourier_transform(self.y_axis,
                                                                                                   self.sample_count)  # Fourier Transform the sine
         ax2.plot(x_axis_neg_included, y_axis_neg_included, "-b")
         ax2.set_ylabel("FFT")
-        ax2.set_xlabel("Frequency (HZ)")
+        ax2.set_xlabel("Frequency (HZ)")'''
 
         # denoised graph hehe
         self.y_denoised = self.denoise(self.y_axis)
@@ -155,37 +157,43 @@ class Root:
         self.y_axis = list(map(lambda x: x * -1 + max_y_denoised + min_y_denoised, self.y_denoised))
         peaks, peaks_prominences = self.find_peaks(self.y_axis)
 
-        # STACK EXCHANGE MAGIC
-        selected = peaks_prominences > 0.5 * (np.min(peaks_prominences) + np.max(peaks_prominences))
-        left = peaks[:-1][selected[1:]]
-        right = peaks[1:][selected[:-1]]
-        top = peaks[selected]
-
         if peaks.size >= 2:
-            ax4.plot(self.x_axis, self.y_axis, "-r",)
-            ax4.plot(peaks, np.take(self.y_axis, peaks), ".k", markersize=5)
-            total_area, start, end = self.find_area(self.y_axis, peaks)
-            ax4.fill_between(self.x_axis[start: end+1], self.y_axis[start: end+1], 0)
+            '''ax4.plot(self.x_axis, self.y_axis, "-r",)
+            ax4.plot(start, np.take(self.y_axis, start), ".k", markersize=8, label="Time period of the wave: {calc} microseconds".format(calc = (end-start) / 10))
+            ax4.plot(end, np.take(self.y_axis, end), ".k", markersize=8)
+            ax4.plot(max1, np.take(self.y_axis, max1), ".y", markersize=8, label="Area under the wave: {total_area:.3e}".format(total_area=total_area))
+            ax4.fill_between(self.x_axis[start: end+1], self.y_axis[start: end+1], self.y_axis[start], alpha=0.3, color="red")'''
 
+            total_area, start, end, max1 = self.find_area(self.y_axis, peaks)
             # the rest of the graph here to get the peaks from the last graph
             ax3.plot(self.x_axis, self.y_denoised, "-c")
-            ax3.plot(peaks, np.take(self.y_denoised, peaks), ".k", markersize=5)
-            ax3.plot(top, self.y_denoised[top], ".y", markersize=5)
-            ax3.plot(left, self.y_denoised[left], "xr", markersize=5)
-            ax3.plot(right, self.y_denoised[right], "vg", markersize=5)
+            # ax3.plot(peaks, np.take(self.y_denoised, peaks), ".k", markersize=5)
+            y_max = max(self.y_axis)
+            y_min = min(self.y_axis)
+            self.y_axis = list(map(lambda x: x * -1 + y_max + y_min, self.y_axis))
+            ax3.fill_between(self.x_axis[start: end+1], self.y_axis[start: end+1], self.y_axis[start], alpha=0.3, color="cyan")
+            ax3.plot(start, np.take(self.y_axis, start), "xk", markersize=4,
+                     label="Time period of the wave: {calc} microseconds".format(calc = (end-start) / 10))
+            ax3.plot(end, np.take(self.y_axis, end), "xk", markersize=4)
+            ax3.plot(max1, np.take(self.y_axis, max1), "xy", markersize=4,
+                     label="Area under the wave: {total_area:.3e}".format(total_area=total_area))
         else:
-            ax4.plot(self.x_axis, self.y_axis, "-r")
+            '''ax4.plot(self.x_axis, self.y_axis, "-r")'''
             ax3.plot(self.x_axis, self.y_denoised, "-c")
             print("no peaks detected :(")
 
-        ax4.set_ylabel("INVERSED")
-        ax4.set_xlabel("Time(S)")
-        ax3.set_ylabel("DENOISED")
-        ax3.set_xlabel("Time(S)")
+        '''ax4.set_ylabel("INVERSED")
+        ax4.set_xlabel("Time(S)")'''
+        ax3.set_ylabel("VOLTAGE (mV)", labelpad=12)
+        ax3.set_xlabel("Time (uS * 1e-1)", labelpad=12)
 
         plt.subplots_adjust(hspace=1)
         self.end = time.time()
-        plt.show()  # Show the gramkjnphs
+        '''ax4.legend()'''
+        ax3.legend()
+        fig.suptitle("Graph", size=20)
+        plt.savefig("Singraph.png")
+        plt.show()  # Show the graph
 
     def main(self):
         self.start = time.time()

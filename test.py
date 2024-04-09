@@ -9,6 +9,7 @@ import pywt
 import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
+import scipy.integrate as itg
 import skimage.restoration as rest
 from pandas import DataFrame as df
 '''
@@ -55,5 +56,7 @@ plt.plot(top, x[top], "x")
 plt.plot(left, x[left], ".", markersize=20)
 plt.plot(right, x[right], ".", markersize=20)
 plt.show()'''
-
-print(1.15556184e+04 == 11555.61840592253)
+'''a = np.reshape(np.linspace(0, 9, 10), (5, 2))
+print(a[np.where(a[:,1] > 5)])'''
+a = np.array([100, 200])
+print(np.take(a, 100))

@@ -25,7 +25,7 @@ oscilloscope_regression_y = np.poly1d(oscilloscope_regression)
 
 fig = plt.figure(num=1, figsize=(8, 6), dpi=200)
 
-fig.suptitle("Readings vs. Altitude", x=0.5, ha="right", color="#8a8a8a", size=20, weight=500)
+fig.suptitle("Cosmic ray flux at different altitudes", ha="right", x=0.7, color="#8a8a8a", size=20, weight=300)
 
 print(circuit_light, oscilloscope)
 
@@ -44,6 +44,6 @@ plt.grid(color="black", alpha=0.25)
 
 plt.legend(loc=0)
 
-plt.savefig("graph.png")
+plt.savefig("Algraph.png")
 
 plt.show()
