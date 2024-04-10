@@ -13,14 +13,14 @@ class Root:
     def __init__(self):  # Parameters for graphs(preset + actual)
         self.frequency = 1  # Generates this many waveforms (USED IN PRESET ONLY)
         self.amplitude = -1  # volts (USED IN PRESET ONLY)
-        self.sample_count = 100  # total
+        self.sample_count = 100
         self.model = None  # Either UTD (UNI-T) or GRA (Gratten)
-        self.duration = 1  # in seconds
-        self.threshold = 5e-2  # Used in IFFT method to reduce the noise
-        self.filepath = None  # File doesn't exist unless said so
+        self.duration = 1  # in seconds (USED IN PRESET ONLY)
+        self.threshold = 5e-2  # Used in wavelet method to reduce the noise
+        self.filepath = None
         self.file_data = None  # Depends on if the file is used
         self.y_axis = None
-        self.x_axis = None  # Axis are overwritten in the code below
+        self.x_axis = None
         self.y_denoised = None  # Just in case
         self.start = 0
         self.end = 0
