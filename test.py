@@ -58,5 +58,12 @@ plt.plot(right, x[right], ".", markersize=20)
 plt.show()'''
 '''a = np.reshape(np.linspace(0, 9, 10), (5, 2))
 print(a[np.where(a[:,1] > 5)])'''
+
+# FFT SPECTRUM
+'''x_axis_fft, y_axis_fft, y_axis_neg_included, x_axis_neg_included = self.fourier_transform(self.y_axis,
+                                                                                          self.sample_count)  # Fourier Transform the sine
+ax2.plot(x_axis_neg_included, y_axis_neg_included, "-b")
+ax2.set_ylabel("FFT")
+ax2.set_xlabel("Frequency (HZ)")'''
 a = np.array([100, 200])
 print(np.take(a, 100))
