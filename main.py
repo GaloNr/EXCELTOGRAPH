@@ -146,10 +146,10 @@ class Root:
             ax3.fill_between(self.x_axis[start: end + 1] / 2000, np.array(self.y_axis[start: end + 1]) / 1000, self.y_axis[start] / 1000, alpha=0.3,
                              color="cyan")
             ax3.plot(start / 2000, np.take(self.y_axis, start) / 1000, "xk", markersize=4,
-                     label="Time period of the wave: {calc} µs".format(calc=(end - start) / 1000))
+                     label="Time period of the pulse: {calc} µs".format(calc=(end - start) / 1000))
             ax3.plot(end / 2000, np.take(self.y_axis, end) / 1000, "xk", markersize=4)
             ax3.plot(max1 / 2000, np.take(self.y_axis, max1) / 1000, "xy", markersize=4,
-                     label="Area under the wave: {total_area:.3e}".format(total_area=total_area))
+                     label="Area under the pulse: {total_area:.3e}".format(total_area=total_area))
         else:
             ax3.plot(self.x_axis, self.y_denoised, "-c")
             print("no peaks detected :(")
