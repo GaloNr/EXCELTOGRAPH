@@ -125,7 +125,7 @@ class Root:
     def display_data(self):  # Method to display the data gathered
         fig, (ax1, ax3) = plt.subplots(nrows=2, ncols=1, figsize=(8, 6),
                                        dpi=200)  # Show both graphs at the same time
-        ax1.plot(self.x_axis, self.y_axis, "-k")
+        ax1.plot(self.x_axis / 2000, np.array(self.y_axis) / 1000, "-k")
         ax1.set_ylabel("VOLTAGE (V)", labelpad=12)
         ax1.set_xlabel("Time (µs)", labelpad=12)
 
@@ -139,28 +139,31 @@ class Root:
 
         if peaks.size >= 2:  # Check whether enough peaks are found to accurately calculate area under the pulse
             total_area, start, end, max1 = self.find_area(self.y_axis, peaks)
-            ax3.plot(self.x_axis, self.y_denoised, "-c")
+            ax3.plot(self.x_axis / 2000, self.y_denoised / 1000, "-c")
             y_max = max(self.y_axis)
             y_min = min(self.y_axis)
             self.y_axis = list(map(lambda x: x * -1 + y_max + y_min, self.y_axis))  # Reverse to portray actual graph
-            ax3.fill_between(self.x_axis[start: end + 1], self.y_axis[start: end + 1], self.y_axis[start], alpha=0.3,
+            ax3.fill_between(self.x_axis[start: end + 1] / 2000, np.array(self.y_axis[start: end + 1]) / 1000, self.y_axis[start] / 1000, alpha=0.3,
                              color="cyan")
-            ax3.plot(start, np.take(self.y_axis, start), "xk", markersize=4,
-                     label="Time period of the wave: {calc} microseconds".format(calc=(end - start) / 10))
-            ax3.plot(end, np.take(self.y_axis, end), "xk", markersize=4)
-            ax3.plot(max1, np.take(self.y_axis, max1), "xy", markersize=4,
+            ax3.plot(start / 2000, np.take(self.y_axis, start) / 1000, "xk", markersize=4,
+                     label="Time period of the wave: {calc} µs".format(calc=(end - start) / 10))
+            ax3.plot(end / 2000, np.take(self.y_axis, end) / 1000, "xk", markersize=4)
+            ax3.plot(max1 / 2000, np.take(self.y_axis, max1) / 1000, "xy", markersize=4,
                      label="Area under the wave: {total_area:.3e}".format(total_area=total_area))
         else:
             ax3.plot(self.x_axis, self.y_denoised, "-c")
             print("no peaks detected :(")
 
-        ax3.set_ylabel("VOLTAGE (mV)", labelpad=12)
-        ax3.set_xlabel("Time (µs * 1e-1)", labelpad=12)
+        ax3.set_ylabel("VOLTAGE (V)", labelpad=12)
+        ax3.set_xlabel("Time (µs)", labelpad=12)
 
         plt.subplots_adjust(hspace=1)
         self.end = time.time()
         ax3.legend()
-        fig.suptitle("Graph", size=20)
+        ax3.set_title("Pulse without the noise")
+        ax1.set_title("Pulse with the noise")
+        ax1.grid()
+        ax3.grid()
         plt.savefig("Singraph.png")
         plt.show()
 
